@@ -52,8 +52,8 @@ function runExternalCommand(input) {
     const fullPath = path.join(dir, command);
 
     if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
-      // Execute the external command using execFile
-      execFile(fullPath, commandArgs, (err, stdout, stderr) => {
+      // Execute the external command using execFile, pass the command name (not the full path)
+      execFile(command, commandArgs, (err, stdout, stderr) => {
         if (err) {
           console.log(`${command}: command execution failed`);
         } else {
