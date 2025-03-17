@@ -5,30 +5,51 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-// Uncomment this block to pass the first stage
-// rl.question("$ ", (answer) => {
-//   console.log(`${answer}: command not found`)
-//   rl.close();
-// });
-
+// Main prompt loop
 function prompt() {
-  rl.question("$ ", (answer) => {
-    const exitCommand = answer.trim() === "exit" || answer.trim() === "exit 0"
-    if (exitCommand) {
-      rl.close();
-      process.exit(0);
-    }
-
-    console.log(`${answer}: command not found`);
-    prompt();
+  rl.question("$ ", (input) => {
+    handleCommand(input.trim());
   });
 }
 
-// Run the REPL loop
-prompt();
+// Command router
+function handleCommand(input) {
+  if (input === "exit 0") {
+    exitShell(0);
+  } else if (input.startsWith("echo ")) {
+    handleEcho(input);
+  } else if (input === "echo") {
+    // handle "echo" with no args
+    console.log("");
+    prompt();
+  } else {
+    unknownCommand(input);
+  }
+}
 
-// Properly handle the Ctrl+C 
-rl.on('SIGINT', () => {
+// Echo handler
+function handleEcho(input) {
+  const message = input.slice(5); // Remove "echo "
+  console.log(message);
+  prompt();
+}
+
+// Unknown command handler
+function unknownCommand(input) {
+  console.log(`${input}: command not found`);
+  prompt();
+}
+
+// Exit handler
+function exitShell(code) {
   rl.close();
-  process.exit(0);
+  process.exit(code);
+}
+
+// Catch Ctrl+C
+rl.on('SIGINT', () => {
+  exitShell(0);
 });
+
+// Start the REPL
+prompt();
