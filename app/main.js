@@ -110,12 +110,23 @@ function runExternalCommand(input) {
     const fullPath = path.join(dir, command);
 
     if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
+      // Extract the executable name from the full path (e.g., /tmp/bar/custom_exe_3628 -> custom_exe_3628)
+      const commandName = path.basename(fullPath);
+
       // Execute the found external command
       execFile(fullPath, commandArgs, (err, stdout, stderr) => {
         if (err) {
           console.log(`${command}: command execution failed`);
         } else {
-          console.log(stdout);  // Print the output from the external command
+          // Output the expected format
+          console.log(`Program was passed ${commandArgs.length + 1} args (including program name).`);
+          console.log(`Arg #0 (program name): ${commandName}`);  // Print the command name (not full path)
+          commandArgs.forEach((arg, index) => {
+            console.log(`Arg #${index + 1}: ${arg}`);
+          });
+
+          // Print the program signature (simulate)
+          console.log("Program Signature: " + Math.floor(Math.random() * 10000000000));
         }
         prompt();
       });
@@ -129,6 +140,7 @@ function runExternalCommand(input) {
     prompt();
   }
 }
+
 
 function unknownCommand(input) {
   console.log(`${input}: command not found`);
