@@ -71,6 +71,7 @@ function runExternalCommand(input) {
     console.log(`${command}: not found`);
     prompt();  // Ensure prompt is called if the command was not found
   }
+  prompt();
 }
 
 function isExecutable(filePath) {
