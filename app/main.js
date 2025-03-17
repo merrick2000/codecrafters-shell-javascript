@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const { execFile } = require('child_process');
-const readline = require('readline');
+const fs = require("fs");
+const path = require("path");
+const { execFile } = require("child_process");
+const readline = require("readline");
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -57,7 +57,7 @@ function runExternalCommand(input) {
         if (err) {
           console.log(`${command}: command execution failed`);
         } else {
-          // Directly print the output of the external executable
+          // Print the output of the external executable
           console.log(stdout);
         }
         prompt();  // Ensure prompt is called after the external command completes
@@ -71,7 +71,6 @@ function runExternalCommand(input) {
     console.log(`${command}: not found`);
     prompt();  // Ensure prompt is called if the command was not found
   }
-  prompt();
 }
 
 function isExecutable(filePath) {
@@ -95,7 +94,7 @@ function exitShell(code) {
   process.exit(code);
 }
 
-rl.on('SIGINT', () => {
+rl.on("SIGINT", () => {
   exitShell(0);
 });
 
