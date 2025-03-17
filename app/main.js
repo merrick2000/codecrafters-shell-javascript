@@ -60,7 +60,7 @@ function runExternalCommand(input) {
           // Directly print the output of the external executable
           console.log(stdout);
         }
-        prompt();
+        prompt();  // Ensure prompt is called after the external command completes
       });
       found = true;
       break; // Exit once we find the executable
@@ -69,7 +69,7 @@ function runExternalCommand(input) {
 
   if (!found) {
     console.log(`${command}: not found`);
-    prompt();
+    prompt();  // Ensure prompt is called if the command was not found
   }
 }
 
