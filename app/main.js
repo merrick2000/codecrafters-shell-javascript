@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
@@ -53,33 +52,13 @@ function runExternalCommand(input) {
     const fullPath = path.join(dir, command);
 
     if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
-      // Extract the executable name from the full path (e.g., /tmp/bar/custom_exe_3628 -> custom_exe_3628)
-      const commandName = path.basename(fullPath);
-
-      // Concatenate the command and arguments to create a signature string
-      const signatureInput = command + " " + commandArgs.join(" ");
-      
-      // Create a hash of the signature string
-      const hash = crypto.createHash('sha256');
-      hash.update(signatureInput);
-      
-      // Convert the hash to a number and ensure it's within the 10-digit range
-      const signature = Math.abs(parseInt(hash.digest('hex').slice(0, 8), 16)).toString().slice(0, 10);
-
-      // Execute the found external command
+      // Execute the external command using execFile
       execFile(fullPath, commandArgs, (err, stdout, stderr) => {
         if (err) {
           console.log(`${command}: command execution failed`);
         } else {
-          // Print the expected output without "[your-program]" prefix
-          console.log(`Program was passed ${commandArgs.length + 1} args (including program name).`);
-          console.log(`Arg #0 (program name): ${commandName}`);  // Print the command name (not full path)
-          commandArgs.forEach((arg, index) => {
-            console.log(`Arg #${index + 1}: ${arg}`);
-          });
-
-          // Print the program signature (deterministic hash-based value)
-          console.log(`Program Signature: ${signature}`);
+          // Directly print the output of the external executable
+          console.log(stdout);
         }
         prompt();
       });
