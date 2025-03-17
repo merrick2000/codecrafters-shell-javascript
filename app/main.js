@@ -13,9 +13,10 @@ const rl = readline.createInterface({
 
 function prompt() {
   rl.question("$ ", (answer) => {
-    if (answer.trim() === "exit") {
+    const exitCommand = answer.trim() === "exit" || answer.trim() === "exit 0"
+    if (exitCommand) {
       rl.close();
-      return;
+      process.exit(0);
     }
 
     console.log(`${answer}: command not found`);
@@ -29,4 +30,5 @@ prompt();
 // Properly handle the Ctrl+C 
 rl.on('SIGINT', () => {
   rl.close();
+  process.exit(0);
 });
