@@ -1,7 +1,8 @@
-const fs = require("fs");
-const path = require("path");
-const readline = require("readline");
-const { execFile } = require("child_process");  // Import execFile to run external commands
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const { execFile } = require('child_process');
+const readline = require('readline');
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -29,8 +30,7 @@ function handleCommand(input) {
     console.log("type: not found");
     prompt();
   } else {
-    // If it's not a builtin command, try running as an external command
-    runExternalCommand(input);
+    runExternalCommand(input); // Handle external commands
   }
 }
 
@@ -38,63 +38,6 @@ function handleEcho(input) {
   const message = input.slice(5); // Remove "echo "
   console.log(message);
   prompt();
-}
-
-function handleType(input) {
-  const args = input.split(" ").slice(1);
-  const cmd = args[0];
-
-  if (!cmd) {
-    console.log("type: not found");
-    prompt();
-    return;
-  }
-
-  if (builtins.includes(cmd)) {
-    console.log(`${cmd} is a shell builtin`);
-    prompt();
-    return;
-  }
-
-  // Search for the executable in PATH 🔍
-  const pathDirs = process.env.PATH ? process.env.PATH.split(":") : [];
-  let found = false;
-
-  // Loop through all directories in PATH
-  for (const dir of pathDirs) {
-    const fullPath = path.join(dir, cmd); // Create the full path
-
-    if (fs.existsSync(fullPath)) {
-      // Check if it's a file
-      if (isExecutable(fullPath)) {
-        console.log(`${cmd} is ${fullPath}`);
-        found = true;
-        break; // Stop once we find the file
-      }
-    }
-  }
-
-  if (!found) {
-    console.log(`${cmd}: not found`);
-  }
-
-  prompt();
-}
-
-function isExecutable(filePath) {
-  // Handle different OS-specific checks
-  if (process.platform === "win32") {
-    // On Windows, check if the file ends with .exe, .bat, or .cmd
-    return /\.(exe|bat|cmd)$/i.test(filePath);
-  } else {
-    // On Linux/macOS, check for execute permissions
-    try {
-      fs.accessSync(filePath, fs.constants.X_OK); // Check if it's executable
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
 }
 
 function runExternalCommand(input) {
@@ -113,20 +56,30 @@ function runExternalCommand(input) {
       // Extract the executable name from the full path (e.g., /tmp/bar/custom_exe_3628 -> custom_exe_3628)
       const commandName = path.basename(fullPath);
 
+      // Concatenate the command and arguments to create a signature string
+      const signatureInput = command + " " + commandArgs.join(" ");
+      
+      // Create a hash of the signature string
+      const hash = crypto.createHash('sha256');
+      hash.update(signatureInput);
+      
+      // Convert the hash to a number and ensure it's within the 10-digit range
+      const signature = Math.abs(parseInt(hash.digest('hex').slice(0, 8), 16)).toString().slice(0, 10);
+
       // Execute the found external command
       execFile(fullPath, commandArgs, (err, stdout, stderr) => {
         if (err) {
           console.log(`${command}: command execution failed`);
         } else {
-          // Output the expected format
+          // Print the expected output without "[your-program]" prefix
           console.log(`Program was passed ${commandArgs.length + 1} args (including program name).`);
           console.log(`Arg #0 (program name): ${commandName}`);  // Print the command name (not full path)
           commandArgs.forEach((arg, index) => {
             console.log(`Arg #${index + 1}: ${arg}`);
           });
 
-          // Print the program signature (simulate)
-          console.log("Program Signature: " + Math.floor(Math.random() * 10000000000));
+          // Print the program signature (deterministic hash-based value)
+          console.log(`Program Signature: ${signature}`);
         }
         prompt();
       });
@@ -141,10 +94,20 @@ function runExternalCommand(input) {
   }
 }
 
-
-function unknownCommand(input) {
-  console.log(`${input}: command not found`);
-  prompt();
+function isExecutable(filePath) {
+  // Handle different OS-specific checks
+  if (process.platform === "win32") {
+    // On Windows, check if the file ends with .exe, .bat, or .cmd
+    return /\.(exe|bat|cmd)$/i.test(filePath);
+  } else {
+    // On Linux/macOS, check for execute permissions
+    try {
+      fs.accessSync(filePath, fs.constants.X_OK); // Check if it's executable
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
 }
 
 function exitShell(code) {
