@@ -19,15 +19,14 @@ function prompt() {
     }
 
     console.log(`${answer}: command not found`);
-    // On reboucle pour attendre la prochaine commande
     prompt();
   });
 }
 
-// Démarrer la boucle REPL
+// Run the REPL loop
 prompt();
 
-// Gérer Ctrl+C proprement
+// Properly handle the Ctrl+C 
 rl.on('SIGINT', () => {
   rl.close();
 });
