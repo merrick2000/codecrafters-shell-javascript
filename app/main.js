@@ -1,3 +1,4 @@
+const fs = require("fs");
 const readline = require("readline");
 
 const rl = readline.createInterface({
@@ -56,6 +57,15 @@ function handleType(input) {
     console.log(`${cmd}: not found`);
   }
 
+  // NOW we search in PATH 🔍
+  const pathDirs = process.env.PATH ? process.env.PATH.split(":") : [];
+  const foundPath = pathDirs.find(dir => fs.existsSync(path.join(dir, cmd)));
+
+  if (foundPath) {
+    console.log(`${cmd} is ${path.join(foundPath, cmd)}`);
+  } else {
+    console.log(`${cmd}: not found`);
+  }
   prompt();
 }
 
