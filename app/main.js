@@ -12,6 +12,9 @@ function prompt() {
   });
 }
 
+// List of builtin commands
+const builtins = ["echo", "exit", "type"];
+
 // Command router
 function handleCommand(input) {
   if (input === "exit 0") {
@@ -22,6 +25,12 @@ function handleCommand(input) {
     // handle "echo" with no args
     console.log("");
     prompt();
+  }  else if (input.startsWith("type ")) {
+    handleType(input);
+  } else if (input === "type") {
+    // handle "type" with no args
+    console.log("type: not found");
+    prompt();
   } else {
     unknownCommand(input);
   }
@@ -31,6 +40,22 @@ function handleCommand(input) {
 function handleEcho(input) {
   const message = input.slice(5); // Remove "echo "
   console.log(message);
+  prompt();
+}
+
+function handleType(input) {
+  const args = input.split(" ").slice(1); // Extract argument(s) after "type"
+
+  const cmd = args[0];
+
+  if (!cmd) {
+    console.log("type: not found");
+  } else if (builtins.includes(cmd)) {
+    console.log(`${cmd} is a shell builtin`);
+  } else {
+    console.log(`${cmd}: not found`);
+  }
+
   prompt();
 }
 
