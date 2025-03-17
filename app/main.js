@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
+const { execFile } = require("child_process");  // Import execFile to run external commands
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -28,7 +29,8 @@ function handleCommand(input) {
     console.log("type: not found");
     prompt();
   } else {
-    unknownCommand(input);
+    // If it's not a builtin command, try running as an external command
+    runExternalCommand(input);
   }
 }
 
@@ -54,7 +56,7 @@ function handleType(input) {
     return;
   }
 
-  // NOW we search in PATH 🔍
+  // Search for the executable in PATH 🔍
   const pathDirs = process.env.PATH ? process.env.PATH.split(":") : [];
   let found = false;
 
@@ -92,6 +94,39 @@ function isExecutable(filePath) {
     } catch (err) {
       return false;
     }
+  }
+}
+
+function runExternalCommand(input) {
+  const args = input.split(" ");
+  const command = args[0];
+  const commandArgs = args.slice(1);
+
+  // Search for the executable in PATH
+  const pathDirs = process.env.PATH ? process.env.PATH.split(":") : [];
+  let found = false;
+
+  for (const dir of pathDirs) {
+    const fullPath = path.join(dir, command);
+
+    if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
+      // Execute the found external command
+      execFile(fullPath, commandArgs, (err, stdout, stderr) => {
+        if (err) {
+          console.log(`${command}: command execution failed`);
+        } else {
+          console.log(stdout);  // Print the output from the external command
+        }
+        prompt();
+      });
+      found = true;
+      break; // Exit once we find the executable
+    }
+  }
+
+  if (!found) {
+    console.log(`${command}: not found`);
+    prompt();
   }
 }
 
